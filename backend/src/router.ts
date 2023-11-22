@@ -1,27 +1,44 @@
 import { Router } from 'express';
+import { body } from 'express-validator';
+import { handleInputErrors } from './middleware';
+import { getSubject, getSubjects } from './handlers/subject';
+import {
+    createTask, deleteTask,
+    getCompletedTasks,
+    getCompletedTasksBySubject,
+    getTask,
+    getTasks,
+    getTasksBySubject,
+    updateTask,
+} from './handlers/task';
 
 const router = Router();
 
 /**
- * Lessons
+ * Subjects
  */
 
-router.get('/lesson', (req, res) => {
-    res.json({message: 'hi there'});
-});
-router.get('/lesson/:id', () => {});
-router.put('/lesson/:id', () => {});
-router.post('/lesson', () => {});
-router.delete('/lesson/:id', () => {});
+router.get('/subject', getSubjects);
+router.get('/subject/:id', getSubject);
 
 /**
  * Tasks
  */
 
-router.get('/task', () => {});
-router.get('/task/:id', () => {});
-router.put('/task/:id', () => {});
-router.post('/task', () => {});
-router.delete('/task/:id', () => {});
+router.get('/task', getTasks);
+router.get('/task/:id', getTask);
+router.get('/completed-tasks', getCompletedTasks);
+router.get('/tasks-by-subject/:id', getTasksBySubject);
+router.get('/completed-tasks-by-subject/:id', getCompletedTasksBySubject);
+router.put('/task/:id', updateTask);
+router.post('/task',
+  body(['title', 'description', 'answer', 'subject']).
+    exists().
+    isString().
+    ltrim().
+    rtrim().
+    notEmpty(),
+  handleInputErrors, createTask);
+router.delete('/task/:id', deleteTask);
 
 export default router;

@@ -8,37 +8,41 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
+  id           String   @id @default(uuid())
   createdAt    DateTime @default(now())
   commonRating Int      @default(0)
 
-  email       String         @unique
-  password    String
-  solvedTasks TasksOnUsers[]
+  email            String         @unique
+  password         String
+  solvedTasks      TasksOnUsers[]
+  isOfficialAuthor Boolean        @default(false)
+  createdTasks     Task[]
 }
 
-model Lesson {
-  id    Int    @id @default(autoincrement())
+model Subject {
+  id    String @id @default(uuid())
   title String @unique @db.VarChar(255)
-  Task  Task[]
+  tasks Task[]
 }
 
 model Task {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
 
   title       String         @unique @db.VarChar(255)
   description String
   answer      String         @db.VarChar(255)
-  lessonId    Int
-  lesson      Lesson         @relation(fields: [lessonId], references: [id])
+  subjectId   String
+  subject     Subject        @relation(fields: [subjectId], references: [id])
   solvedUsers TasksOnUsers[]
+  author      User?          @relation(fields: [userId], references: [id])
+  userId      String?
 }
 
 model TasksOnUsers {
-  user            User @relation(fields: [userId], references: [id])
-  userId          Int
-  solvedTask      Task @relation(fields: [completedTaskId], references: [id])
-  completedTaskId Int
+  user            User   @relation(fields: [userId], references: [id])
+  userId          String
+  solvedTask      Task   @relation(fields: [completedTaskId], references: [id])
+  completedTaskId String
 
   @@id([userId, completedTaskId])
 }

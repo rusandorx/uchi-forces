@@ -8,10 +8,12 @@ import { Xmark } from '@gravity-ui/icons';
 
 const queryClient = new QueryClient();
 
-export const lessons = ['Математика', 'Физика', 'Русский язык', 'Обществознание', 'Программирование'];
-
-const TaskList: React.FC<{ index: number }> = ({ index }) => {
-    const { isLoading, error, data } = useQuery(`fetch-title-${lessons[index]}`,
+const TaskList: React.FC<{ index: number, subjects: string[] }> = ({
+    index,
+    subjects,
+}) => {
+    const { isLoading, error, data } = useQuery(
+      `fetch-title-${subjects?.[index]}`,
       // eslint-disable-next-line no-undef
       () => fetch(`${process.env.REACT_APP_SERVER_URL}`));
     if (error) return <div>error</div>;
@@ -21,21 +23,32 @@ const TaskList: React.FC<{ index: number }> = ({ index }) => {
 
 const MainPage = () => {
     const [tabIndex, setTabIndex] = useState(0);
+    const { data, status } = useQuery('subjects',
+      async () => {
+          const res = await fetch(
+            // eslint-disable-next-line no-undef
+            `${process.env.REACT_APP_SERVER_URL}/api/subjects`);
+          if (!res.ok) throw Error(res.status.toString());
+          return res.json();
+      });
+
+    if (status === 'error') return <div>Could not fetch data</div>
 
     return (
       <main className="p-4">
           <div className="flex gap-3 pb-6">
-              {lessons.map((lesson, index) => {
-                  return <Button key={v4()} selected={index === tabIndex} disabled={index >= 2}
+              {data?.map((subject: string, index: number) => {
+                  return <Button key={v4()} selected={index === tabIndex}
+                                 disabled={index >= 2}
                                  size="l" onClick={() => {
                       setTabIndex(index);
-                  }}>{lesson}</Button>;
+                  }}>{subject}</Button>;
               })}
           </div>
 
           <div>
-              <h3>{lessons.at(tabIndex)}</h3>
-              <TaskList index={tabIndex}/>
+              <h3>{data?.at(tabIndex)}</h3>
+              <TaskList index={tabIndex} subjects={data}/>
           </div>
       </main>
     );
@@ -49,10 +62,14 @@ const Header = () => {
       <header className="flex gap-3 items-center mr-2 h-15 p-3">
           <Text variant="header-1"><NavLink to="/">UchiForces</NavLink></Text>
           <Button size="m"
-                  onClick={() => setRegisterOpen(!loginOpen)}>Зарегистрироваться</Button>
-          <Modal open={registerOpen} onOutsideClick={() => setRegisterOpen(false)}>
+                  onClick={() => setRegisterOpen(
+                    !loginOpen)}>Зарегистрироваться</Button>
+          <Modal open={registerOpen}
+                 onOutsideClick={() => setRegisterOpen(false)}>
               <form className="w-80 h-40 flex flex-col p-4 pt-9 gap-3 relative">
-                  <Button className="!absolute !right-3 !top-1" onClick={() => setRegisterOpen(false)} view="flat"><Icon data={Xmark}/></Button>
+                  <Button className="!absolute !right-3 !top-1"
+                          onClick={() => setRegisterOpen(false)}
+                          view="flat"><Icon data={Xmark}/></Button>
                   <TextInput type="email" label="Почта: "/>
                   <TextInput type="password" label="Пароль: "/>
                   <Button type="submit">Зарегистрироваться</Button>
@@ -62,7 +79,9 @@ const Header = () => {
                   onClick={() => setLoginOpen(!loginOpen)}>Войти</Button>
           <Modal open={loginOpen} onOutsideClick={() => setLoginOpen(false)}>
               <form className="w-80 h-40 flex flex-col p-4 pt-9 gap-3 relative">
-                  <Button className="!absolute !right-3 !top-1" onClick={() => setLoginOpen(false)} view="flat"><Icon data={Xmark}/></Button>
+                  <Button className="!absolute !right-3 !top-1"
+                          onClick={() => setLoginOpen(false)} view="flat"><Icon
+                    data={Xmark}/></Button>
                   <TextInput type="email" label="Почта: "/>
                   <TextInput type="password" label="Пароль: "/>
                   <Button type="submit">Войти</Button>

@@ -1,10 +1,18 @@
 import app from './server';
 import * as dotenv from 'dotenv';
+import config from './config';
 
 dotenv.config();
 
-const PORT = process.env.SERVER_PORT ?? 3001;
+const handleUncaughtException: NodeJS.UncaughtExceptionListener = (
+  error, origin) => {
+    console.error(error.message);
+    console.error(`Origin: ${origin}`);
+};
 
-app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
-})
+process.on('uncaughtException', handleUncaughtException);
+process.on('unhandledRejection', handleUncaughtException);
+
+app.listen(config.port, () => {
+    console.log(`Server started on port ${config.port}`);
+});
